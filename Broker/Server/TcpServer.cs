@@ -1,22 +1,30 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Broker.Server.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace Broker.Server
 {
     internal class TcpServer : IServer
     {
+        private readonly ILogger<TcpServer> _logger;
         private CancellationTokenSource _cancellationTokenSource;
+
+        public TcpServer(ILogger<TcpServer> logger)
+        {
+            _logger = logger;
+        }
 
         public void Start(string ipAddress, int port)
         {
             ThrowIfStarted();
             _cancellationTokenSource = new CancellationTokenSource();
-            
+
             var address = IPAddress.Parse(ipAddress);
-            var tcpListener = new TcpListener(address,port);
+            var tcpListener = new TcpListener(address, port);
             Task.Run(() => Listen(tcpListener), _cancellationTokenSource.Token);
         }
 
@@ -29,10 +37,22 @@ namespace Broker.Server
 
         private void Listen(TcpListener tcpListener)
         {
+            tcpListener.Start();
+            _logger.LogInformation("Listening on : {0}", tcpListener.LocalEndpoint);
             while (true)
             {
-                _cancellationTokenSource.Token.ThrowIfCancellationRequested();
-                var client = tcpListener.AcceptTcpClient();
+                _logger.LogDebug("Waiting for client to connect");
+                try
+                {
+                    _cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                }
+                catch (OperationCanceledException)
+                {
+                    tcpListener.Stop();
+                    throw;
+                }
+                var tcpClient = tcpListener.AcceptTcpClient();
+                _logger.LogDebug("Client connected : {0}", tcpClient.Client.RemoteEndPoint);
             }
         }
 
