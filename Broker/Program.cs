@@ -1,10 +1,13 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading;
 using Broker.Application;
+using Broker.Commands.Services;
 using Broker.Server;
 using Broker.Topics.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Container = Broker.Core.Container;
 
 namespace Broker
 {
@@ -13,6 +16,7 @@ namespace Broker
         public static void Main(string[] args)
         {
             var serviceProvider = GetServiceProvider();
+            Container.SetServiceProvider(serviceProvider);
             var brokerApp = serviceProvider.GetService<IBrokerApp>();
             
             brokerApp.Start();
@@ -30,6 +34,7 @@ namespace Broker
             serviceCollection.AddTransient<IBrokerApp, BrokerApp>();
             serviceCollection.AddTransient<ITopicService, TopicService>();
             serviceCollection.AddTransient<IServer, TcpServer>();
+            serviceCollection.AddSingleton<ICommandService, CommandService>();
 
             return serviceCollection.BuildServiceProvider();
         }

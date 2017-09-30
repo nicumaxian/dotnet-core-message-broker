@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Broker.Server.Exceptions;
+using Broker.Server.Handlers;
 using Microsoft.Extensions.Logging;
 
 namespace Broker.Server
@@ -35,13 +36,12 @@ namespace Broker.Server
             _cancellationTokenSource = null;
         }
 
-        private void Listen(TcpListener tcpListener)
+        private async Task Listen(TcpListener tcpListener)
         {
             tcpListener.Start();
             _logger.LogInformation("Listening on : {0}", tcpListener.LocalEndpoint);
             while (true)
             {
-                _logger.LogDebug("Waiting for client to connect");
                 try
                 {
                     _cancellationTokenSource.Token.ThrowIfCancellationRequested();
@@ -51,8 +51,12 @@ namespace Broker.Server
                     tcpListener.Stop();
                     throw;
                 }
-                var tcpClient = tcpListener.AcceptTcpClient();
+                
+                _logger.LogDebug("Waiting for client to connect");
+                var tcpClient = await tcpListener.AcceptTcpClientAsync();
                 _logger.LogDebug("Client connected : {0}", tcpClient.Client.RemoteEndPoint);
+                var connectionHandler = new ConnectionHandler(tcpClient);
+                Task.Run(() => connectionHandler.Listen());
             }
         }
 
