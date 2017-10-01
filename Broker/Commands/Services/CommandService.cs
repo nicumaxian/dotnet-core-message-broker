@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Input;
 using Broker.Commands.Attributes;
 using Broker.Commands.Exceptions;
+using Broker.Server;
 using Microsoft.Extensions.Logging;
 using Utils.Extensions;
 using Utils.Packets;
@@ -27,7 +28,7 @@ namespace Broker.Commands.Services
             _commandCollection = commandCollection;
         }
 
-        public Packet Execute(string command)
+        public Packet Execute(string command, ClientContext context)
         {
             var matchCollection = ParseCommand(command);
 
@@ -37,11 +38,11 @@ namespace Broker.Commands.Services
                 var commandHandler = _commandCollection.GetHandler(commandIdentifier);
                 var arguments = matchCollection.Skip(1).Select(match => match.Value).ToArray();
 
-                return commandHandler.Run(arguments);
+                return commandHandler.Run(arguments, context);
             }
-            
+
             _logger.LogError("Unable to find command : {0}", commandIdentifier);
-            throw new CommandExecutionException("Unable to find command","BAD_COMMAND");
+            throw new CommandExecutionException("Unable to find command", "BAD_COMMAND");
         }
 
         private MatchCollection ParseCommand(string command)
@@ -53,7 +54,7 @@ namespace Broker.Commands.Services
                 _logger.LogError("Command \"{0}\" could not be parsed", command);
                 throw new CommandException("Invalid given command");
             }
-            
+
             return matchCollection;
         }
     }

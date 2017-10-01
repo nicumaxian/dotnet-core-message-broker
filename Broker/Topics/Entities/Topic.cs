@@ -7,12 +7,12 @@ namespace Broker.Topics.Entities
     {
         public string Identifier { get; }
 
-        public ConcurrentQueue<string> Messages { get; }
+        public ConcurrentQueue<TopicMessage> Messages { get; }
         
         public Topic(string identifier)
         {
             Identifier = identifier;
-            Messages = new ConcurrentQueue<string>();
+            Messages = new ConcurrentQueue<TopicMessage>();
         }
 
         public override string ToString()

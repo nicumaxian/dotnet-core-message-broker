@@ -19,6 +19,7 @@ namespace Broker.Server.Handlers
         private readonly ILogger<ConnectionHandler> _logger;
         private readonly PacketStreamReader _packetStreamReader;
         private readonly PacketStreamWriter _packetStreamWriter;
+        private readonly ClientContext _clientContext;
 
         public ConnectionHandler(TcpClient tcpClient)
         {
@@ -27,6 +28,7 @@ namespace Broker.Server.Handlers
             _logger = Container.Resolve<ILogger<ConnectionHandler>>();
             _packetStreamReader = new PacketStreamReader(_tcpClient.GetStream());
             _packetStreamWriter = new PacketStreamWriter(_tcpClient.GetStream());
+            _clientContext = new ClientContext();
         }
 
         public void Listen()
@@ -40,7 +42,7 @@ namespace Broker.Server.Handlers
                     Packet result;
                     try
                     {
-                        result = _commandService.Execute(command);
+                        result = _commandService.Execute(command,_clientContext);
                     }
                     catch (CommandExecutionException exception)
                     {

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Broker.Topics.Entities;
 using Microsoft.Extensions.Logging;
+using Utils.Extensions;
 
 namespace Broker.Topics.Services
 {
@@ -11,7 +12,7 @@ namespace Broker.Topics.Services
     {
         private readonly ConcurrentBag<Topic> _topics;
         private readonly ILogger<TopicService> _logger;
-        
+
         public TopicService(ILogger<TopicService> logger)
         {
             _logger = logger;
@@ -28,10 +29,10 @@ namespace Broker.Topics.Services
             return _topics;
         }
 
-        public IEnumerable<Topic> GetTopics(string regEx)
+        public IEnumerable<Topic> GetTopics(string globPattern)
         {
-            var regex = new Regex(regEx,RegexOptions.Compiled);
-            
+            var regex = new Regex(globPattern.GlobToRegex(), RegexOptions.Compiled);
+
             return _topics
                 .Where(topic => regex.IsMatch(topic.Identifier));
         }

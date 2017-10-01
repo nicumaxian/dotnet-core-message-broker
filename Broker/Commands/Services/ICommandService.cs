@@ -1,4 +1,5 @@
-﻿using Utils.Packets;
+﻿using Broker.Server;
+using Utils.Packets;
 
 namespace Broker.Commands.Services
 {
@@ -8,7 +9,8 @@ namespace Broker.Commands.Services
         /// Executes a command
         /// </summary>
         /// <param name="command">Command as a string</param>
+        /// <param name="context">Executing context</param>
         /// <returns>Protocol response</returns>
-        Packet Execute(string command);
+        Packet Execute(string command,ClientContext context);
     }
 }

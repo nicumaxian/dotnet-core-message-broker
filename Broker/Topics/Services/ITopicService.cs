@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Broker.Topics.Entities;
 
 namespace Broker.Topics.Services
@@ -20,8 +21,8 @@ namespace Broker.Topics.Services
         /// <summary>
         /// Gets list of existing topics which matches a regex
         /// </summary>
-        /// <param name="regEx">Regex for topics match</param>
+        /// <param name="globPattern">Regex for topics match</param>
         /// <returns>Returns the list of topics matching a regex</returns>
-        IEnumerable<Topic> GetTopics(string regEx);
+        IEnumerable<Topic> GetTopics(string globPattern);
     }
 }
