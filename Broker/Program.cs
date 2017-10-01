@@ -7,6 +7,7 @@ using System.Threading;
 using Broker.Application;
 using Broker.Commands;
 using Broker.Commands.Attributes;
+using Broker.Commands.Handlers;
 using Broker.Commands.Services;
 using Broker.Server;
 using Broker.Topics.Services;

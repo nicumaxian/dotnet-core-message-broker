@@ -30,23 +30,21 @@ namespace Broker.Server.Handlers
             {
                 if (networkStream.DataAvailable)
                 {
+                    var command = Read(networkStream);
+                    _logger.LogDebug("Client {0} sent command \"{1}\"", _tcpClient.Client.RemoteEndPoint, command);
                     try
                     {
-                        var command = Read(networkStream);
-                        _logger.LogDebug("Client {0} sent command \"{1}\"", _tcpClient.Client.RemoteEndPoint, command);
-                        try
-                        {
-                            Send(networkStream, _commandService.Execute(command));
-                        }
-                        catch (CommandExecutionException exception)
-                        {
-                            _logger.LogError(exception, "Error on executing");
-                            Send(networkStream, exception.Message);
-                        }
+                        Send(networkStream, _commandService.Execute(command));
+                    }
+                    catch (CommandExecutionException exception)
+                    {
+                        _logger.LogError(exception, "Error on executing command");
+                        Send(networkStream, exception.Message);
                     }
                     catch (Exception exception)
                     {
-                        _logger.LogError(exception, "Unexpected error");
+                        _logger.LogError(exception, "Error on executing");
+                        Send(networkStream, "Broker error");
                     }
                 }
             }

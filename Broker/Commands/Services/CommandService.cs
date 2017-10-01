@@ -33,8 +33,11 @@ namespace Broker.Commands.Services
             var commandIdentifier = matchCollection[0].Value;
             if (_commandCollection.HasCommand(commandIdentifier))
             {
-                return _commandCollection.GetHandler(commandIdentifier)
-                    .Run(matchCollection.Skip(1).Select(match => match.Value).ToArray());
+                var commandHandler = _commandCollection.GetHandler(commandIdentifier);
+                var arguments = matchCollection.Skip(1).Select(match => match.Value).ToArray();
+                
+                return commandHandler.Run(arguments)
+                    .ToString();
             }
             
             _logger.LogError("Unable to find command : {0}", commandIdentifier);

@@ -1,13 +1,13 @@
 ﻿using Broker.Commands.Attributes;
 
-namespace Broker.Commands
+namespace Broker.Commands.Handlers
 {
     [Command("subscribe")]
     public class SubscribeCommandHandler : ICommandHandler
     {
-        public string Run(string[] arguments)
+        public CommandResponse Run(string[] arguments)
         {
-            return "OK";
+            return CommandResponse.Ok();
         }
     }
 }

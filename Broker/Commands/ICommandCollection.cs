@@ -1,4 +1,6 @@
-﻿namespace Broker.Commands
+﻿using Broker.Commands.Handlers;
+
+namespace Broker.Commands
 {
     public interface ICommandCollection
     {

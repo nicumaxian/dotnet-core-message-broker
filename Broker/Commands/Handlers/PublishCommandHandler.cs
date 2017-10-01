@@ -1,7 +1,7 @@
 ﻿using Broker.Commands.Attributes;
 using Microsoft.Extensions.Logging;
 
-namespace Broker.Commands
+namespace Broker.Commands.Handlers
 {
     [Command("publish")]
     public class PublishCommandHandler : ICommandHandler
@@ -13,11 +13,11 @@ namespace Broker.Commands
             _logger = logger;
         }
 
-        public string Run(string[] arguments)
+        public CommandResponse Run(string[] arguments)
         {
             _logger.LogInformation("Executing publish");
 
-            return "OK";
+            return CommandResponse.Ok();
         }
     }
 }

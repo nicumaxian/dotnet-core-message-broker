@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Broker.Commands.Handlers;
 
 namespace Broker.Commands
 {
