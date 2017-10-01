@@ -18,10 +18,5 @@ namespace Broker.Core
         {
             return _serviceProvider.GetService<T>();
         }
-        
-        public static T Resolve<T>(Type type)
-        {
-            return (T)_serviceProvider.GetService(type);
-        }
     }
 }

@@ -2,10 +2,13 @@
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using Broker.Commands;
 using Broker.Commands.Exceptions;
 using Broker.Commands.Services;
 using Broker.Core;
 using Microsoft.Extensions.Logging;
+using Utils.Extensions;
+using Utils.Packets;
 
 namespace Broker.Server.Handlers
 {
@@ -14,54 +17,45 @@ namespace Broker.Server.Handlers
         private readonly TcpClient _tcpClient;
         private readonly ICommandService _commandService;
         private readonly ILogger<ConnectionHandler> _logger;
+        private readonly PacketStreamReader _packetStreamReader;
+        private readonly PacketStreamWriter _packetStreamWriter;
 
         public ConnectionHandler(TcpClient tcpClient)
         {
             _tcpClient = tcpClient;
             _commandService = Container.Resolve<ICommandService>();
             _logger = Container.Resolve<ILogger<ConnectionHandler>>();
+            _packetStreamReader = new PacketStreamReader(_tcpClient.GetStream());
+            _packetStreamWriter = new PacketStreamWriter(_tcpClient.GetStream());
         }
 
         public void Listen()
         {
-            var networkStream = _tcpClient.GetStream();
-
             while (true)
             {
-                if (networkStream.DataAvailable)
+                if (_packetStreamReader.HasPacket())
                 {
-                    var command = Read(networkStream);
+                    var command = _packetStreamReader.GetNextPacketCommand();
                     _logger.LogDebug("Client {0} sent command \"{1}\"", _tcpClient.Client.RemoteEndPoint, command);
+                    Packet result;
                     try
                     {
-                        Send(networkStream, _commandService.Execute(command));
+                        result = _commandService.Execute(command);
                     }
                     catch (CommandExecutionException exception)
                     {
                         _logger.LogError(exception, "Error on executing command");
-                        Send(networkStream, exception.Message);
+                        result = Packet.Error(exception.ProtocolError);
                     }
                     catch (Exception exception)
                     {
-                        _logger.LogError(exception, "Error on executing");
-                        Send(networkStream, "Broker error");
+                        _logger.LogError(exception, "Error on executing command");
+                        result = Packet.Error("SERVER_ERROR");
                     }
+                    
+                    _packetStreamWriter.Write(result);
                 }
             }
-        }
-
-        private static string Read(NetworkStream networkStream)
-        {
-            byte[] bytes = new byte[1024];
-            var readCount = networkStream.Read(bytes, 0, bytes.Length);
-            var command = Encoding.ASCII.GetString(bytes, 0, readCount);
-            return command;
-        }
-
-        private static void Send(NetworkStream networkStream, string message)
-        {
-            var buffer = Encoding.ASCII.GetBytes(message);
-            networkStream.Write(buffer, 0, buffer.Length);
         }
     }
 }

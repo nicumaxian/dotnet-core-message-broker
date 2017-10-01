@@ -1,13 +1,14 @@
 ﻿using Broker.Commands.Attributes;
+using Utils.Packets;
 
 namespace Broker.Commands.Handlers
 {
     [Command("subscribe")]
     public class SubscribeCommandHandler : ICommandHandler
     {
-        public CommandResponse Run(string[] arguments)
+        public Packet Run(string[] arguments)
         {
-            return CommandResponse.Ok();
+            return Packet.Error("Unknown");
         }
     }
 }

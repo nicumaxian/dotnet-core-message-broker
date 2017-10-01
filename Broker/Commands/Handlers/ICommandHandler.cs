@@ -1,7 +1,9 @@
-﻿namespace Broker.Commands.Handlers
+﻿using Utils.Packets;
+
+namespace Broker.Commands.Handlers
 {
     public interface ICommandHandler
     {
-        CommandResponse Run(string[] arguments);
+        Packet Run(string[] arguments);
     }
 }

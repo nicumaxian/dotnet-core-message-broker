@@ -1,4 +1,6 @@
-﻿namespace Broker.Commands.Services
+﻿using Utils.Packets;
+
+namespace Broker.Commands.Services
 {
     public interface ICommandService
     {
@@ -7,6 +9,6 @@
         /// </summary>
         /// <param name="command">Command as a string</param>
         /// <returns>Protocol response</returns>
-        string Execute(string command);
+        Packet Execute(string command);
     }
 }

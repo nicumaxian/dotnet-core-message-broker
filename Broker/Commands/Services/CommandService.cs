@@ -10,6 +10,7 @@ using Broker.Commands.Attributes;
 using Broker.Commands.Exceptions;
 using Microsoft.Extensions.Logging;
 using Utils.Extensions;
+using Utils.Packets;
 using Container = Broker.Core.Container;
 
 namespace Broker.Commands.Services
@@ -26,7 +27,7 @@ namespace Broker.Commands.Services
             _commandCollection = commandCollection;
         }
 
-        public string Execute(string command)
+        public Packet Execute(string command)
         {
             var matchCollection = ParseCommand(command);
 
@@ -35,9 +36,8 @@ namespace Broker.Commands.Services
             {
                 var commandHandler = _commandCollection.GetHandler(commandIdentifier);
                 var arguments = matchCollection.Skip(1).Select(match => match.Value).ToArray();
-                
-                return commandHandler.Run(arguments)
-                    .ToString();
+
+                return commandHandler.Run(arguments);
             }
             
             _logger.LogError("Unable to find command : {0}", commandIdentifier);
