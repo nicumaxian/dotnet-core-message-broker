@@ -10,5 +10,11 @@ namespace Utils.Extensions
                 .Replace(@"\*", ".*")
                 .Replace(@"\?", ".");
         }
+        
+        public static bool MatchesGlob(this string str,string glob)
+        {
+            var regex = new Regex(glob.GlobToRegex());
+            return regex.IsMatch(str);
+        }
     }
 }

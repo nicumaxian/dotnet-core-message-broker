@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Broker.Topics.Entities;
+using Broker.Topics.Events;
 
 namespace Broker.Topics.Services
 {
@@ -24,5 +25,9 @@ namespace Broker.Topics.Services
         /// <param name="globPattern">Regex for topics match</param>
         /// <returns>Returns the list of topics matching a regex</returns>
         IEnumerable<Topic> GetTopics(string globPattern);
+
+        void Publish(TopicMessage topicMessage);
+
+        event EventHandler<TopicMessagePublishedEvent> MessagePublisedEventHandler;
     }
 }

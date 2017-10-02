@@ -1,8 +1,10 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Broker.Topics.Entities;
+using Broker.Topics.Events;
 using Microsoft.Extensions.Logging;
 using Utils.Extensions;
 
@@ -36,5 +38,12 @@ namespace Broker.Topics.Services
             return _topics
                 .Where(topic => regex.IsMatch(topic.Identifier));
         }
+
+        public void Publish(TopicMessage topicMessage)
+        {
+            MessagePublisedEventHandler?.Invoke(this,new TopicMessagePublishedEvent(topicMessage));
+        }
+
+        public event EventHandler<TopicMessagePublishedEvent> MessagePublisedEventHandler;
     }
 }

@@ -2,6 +2,13 @@
 {
     public class TopicMessage
     {
-        public string Content { get; set; }
+        public TopicMessage(Topic topic, string content)
+        {
+            Topic = topic;
+            Content = content;
+        }
+
+        public Topic Topic { get; }
+        public string Content { get; }
     }
 }

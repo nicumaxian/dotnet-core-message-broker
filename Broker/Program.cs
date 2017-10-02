@@ -40,9 +40,9 @@ namespace Broker
 
             RegisterCommands(serviceCollection);
             serviceCollection.AddLogging(ConfigureLogging);
-            serviceCollection.AddTransient<IBrokerApp, BrokerApp>();
-            serviceCollection.AddTransient<ITopicService, TopicService>();
-            serviceCollection.AddTransient<IServer, TcpServer>();
+            serviceCollection.AddSingleton<IBrokerApp, BrokerApp>();
+            serviceCollection.AddSingleton<ITopicService, TopicService>();
+            serviceCollection.AddSingleton<IServer, TcpServer>();
             serviceCollection.AddSingleton<ICommandService, CommandService>();
             serviceCollection.AddSingleton<ICommandCollection>(serviceProvider =>
             {

@@ -1,19 +1,28 @@
 ﻿using System;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Utils.Packets;
 
-namespace DemoPublisher
+namespace Client
 {
     class Program
     {
         static void Main(string[] args)
         {
+            if (args.Length < 2)
+            {
+                Console.WriteLine("Invalid arguments given");
+                Console.WriteLine("Please use 2 arguments when running application : hostname port");
+                return;
+            }
             TcpClient client = new TcpClient();
-            client.Connect(IPAddress.Parse("127.0.0.1"),31013);
+            var hostname = args[0];
+            var port = Convert.ToInt32(args[1]);
+            
+            Console.WriteLine($"Connecting to {hostname}:{port}");
+            client.Connect(IPAddress.Parse(hostname),port);
 
             Task.Run(() => Listen(client));
 

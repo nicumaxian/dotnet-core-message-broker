@@ -1,15 +1,21 @@
-﻿using Broker.Commands.Attributes;
+﻿using System.Text.RegularExpressions;
+using Broker.Commands.Attributes;
 using Broker.Server;
 using Utils.Packets;
 
 namespace Broker.Commands.Handlers
 {
     [Command("subscribe")]
-    public class SubscribeCommandHandler : ICommandHandler
+    public class SubscribeCommandHandler : AbstractRegexHandler
     {
-        public Packet Run(string[] arguments, ClientContext context)
+        public SubscribeCommandHandler() : base(@"^([\w\d\.]*){1}$")
         {
-            return Packet.Error("Unknown");
+        }
+
+        public override Packet GetData(string[] data, ClientContext context)
+        {
+            context.Subscribe(data[0]);
+            return Packet.Ok();
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Broker.Commands.Services
 {
     public class CommandService : ICommandService
     {
-        private static readonly Regex ParseRegex = new Regex(@"([^\s]+)", RegexOptions.Compiled);
+        private static readonly Regex ParseRegex = new Regex(@"^([^\s]+){1}\s{0,1}(.*)$", RegexOptions.Compiled);
         private readonly ICommandCollection _commandCollection;
         private readonly ILogger<CommandService> _logger;
 
@@ -32,20 +32,19 @@ namespace Broker.Commands.Services
         {
             var matchCollection = ParseCommand(command);
 
-            var commandIdentifier = matchCollection[0].Value;
+            var commandIdentifier = matchCollection[1].Value;
             if (_commandCollection.HasCommand(commandIdentifier))
             {
                 var commandHandler = _commandCollection.GetHandler(commandIdentifier);
-                var arguments = matchCollection.Skip(1).Select(match => match.Value).ToArray();
 
-                return commandHandler.Run(arguments, context);
+                return commandHandler.Run(matchCollection[2].Value, context);
             }
 
             _logger.LogError("Unable to find command : {0}", commandIdentifier);
             throw new CommandExecutionException("Unable to find command", "BAD_COMMAND");
         }
 
-        private MatchCollection ParseCommand(string command)
+        private GroupCollection ParseCommand(string command)
         {
             _logger.LogDebug("Parsing command \"{0}\"", command);
             var matchCollection = ParseRegex.Matches(command);
@@ -55,7 +54,7 @@ namespace Broker.Commands.Services
                 throw new CommandException("Invalid given command");
             }
 
-            return matchCollection;
+            return matchCollection[0].Groups;
         }
     }
 }

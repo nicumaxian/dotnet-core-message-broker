@@ -15,7 +15,20 @@ namespace Utils.Packets
         {
             return new Packet(Status.Ok);
         }
-        
+
+        public static Packet Ok(string data)
+        {
+            return new Packet(Status.Ok)
+                .Append(data);
+        }
+
+        public static Packet TopicMessage(string topic, string message)
+        {
+            return new Packet(Status.TopicMessage)
+                .Append(topic)
+                .Append(message);
+        }
+
         public static Packet Error(string reason)
         {
             return new Packet(Status.Error)
@@ -36,7 +49,8 @@ namespace Utils.Packets
         private enum Status
         {
             Ok = 0,
-            Error = 1
+            Error = 1,
+            TopicMessage = 2,
         }
     }
 }
