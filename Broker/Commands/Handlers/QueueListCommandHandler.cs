@@ -1,24 +1,24 @@
 ﻿using System.Linq;
 using Broker.Commands.Attributes;
+using Broker.Queues.Services;
 using Broker.Server;
-using Broker.Topics.Services;
 using Utils.Packets;
 
 namespace Broker.Commands.Handlers
 {
-    [Command("topic-list")]
-    public class TopicListCommandHandler : ICommandHandler
+    [Command("queue-list")]
+    public class QueueListCommandHandler : ICommandHandler
     {
-        private readonly ITopicService _topicService;
+        private readonly IQueueService _queueService;
 
-        public TopicListCommandHandler(ITopicService topicService)
+        public QueueListCommandHandler(IQueueService queueService)
         {
-            _topicService = topicService;
+            _queueService = queueService;
         }
 
         public Packet Run(string data, ClientContext context)
         {
-            var enumerable = _topicService.GetTopics()
+            var enumerable = _queueService.GetQueues()
                 .Select(s => s.Identifier);
 
             if (enumerable.Any())

@@ -22,10 +22,10 @@ namespace Utils.Packets
                 .Append(data);
         }
 
-        public static Packet TopicMessage(string topic, string message)
+        public static Packet Message(string queue, string message)
         {
             return new Packet(Status.TopicMessage)
-                .Append(topic)
+                .Append(queue)
                 .Append(message);
         }
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -9,8 +8,9 @@ using Broker.Commands;
 using Broker.Commands.Attributes;
 using Broker.Commands.Handlers;
 using Broker.Commands.Services;
+using Broker.Queues.Services;
 using Broker.Server;
-using Broker.Topics.Services;
+using Broker.Server.Pool;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Utils.Extensions;
@@ -24,9 +24,9 @@ namespace Broker
         {
             var serviceProvider = GetServiceProvider();
             Container.SetServiceProvider(serviceProvider);
-            
+
             var brokerApp = serviceProvider.GetService<IBrokerApp>();
-            
+
             brokerApp.Start();
             while (true)
             {
@@ -41,18 +41,20 @@ namespace Broker
             RegisterCommands(serviceCollection);
             serviceCollection.AddLogging(ConfigureLogging);
             serviceCollection.AddSingleton<IBrokerApp, BrokerApp>();
-            serviceCollection.AddSingleton<ITopicService, TopicService>();
+            serviceCollection.AddSingleton<IQueueService, QueueService>();
             serviceCollection.AddSingleton<IServer, TcpServer>();
             serviceCollection.AddSingleton<ICommandService, CommandService>();
+            serviceCollection.AddSingleton<IClientPool, ClientPool>();
             serviceCollection.AddSingleton<ICommandCollection>(serviceProvider =>
             {
                 var commandCollection = new CommandCollection();
-                
+
                 GetCommandHandlers()
                     .ForEach(type =>
                     {
                         var commandAttribute = type.GetCustomAttribute<CommandAttribute>();
-                        commandCollection.Register(commandAttribute.Identifier,(ICommandHandler)serviceProvider.GetService(type));
+                        commandCollection.Register(commandAttribute.Identifier,
+                            (ICommandHandler) serviceProvider.GetService(type));
                     });
 
                 return commandCollection;
@@ -68,12 +70,11 @@ namespace Broker
                 .AddConsole()
                 .AddDebug();
         }
-        
+
         private static void RegisterCommands(IServiceCollection serviceCollection)
         {
             GetCommandHandlers()
                 .ForEach(type => serviceCollection.AddSingleton(type));
-
         }
 
         private static IEnumerable<Type> GetCommandHandlers()

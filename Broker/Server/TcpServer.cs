@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Broker.Server.Exceptions;
 using Broker.Server.Handlers;
+using Broker.Server.Pool;
 using Microsoft.Extensions.Logging;
 
 namespace Broker.Server
@@ -12,21 +13,24 @@ namespace Broker.Server
     internal class TcpServer : IServer
     {
         private readonly ILogger<TcpServer> _logger;
+        private readonly IClientPool _clientPool;
         private CancellationTokenSource _cancellationTokenSource;
 
-        public TcpServer(ILogger<TcpServer> logger)
+        public TcpServer(ILogger<TcpServer> logger, IClientPool clientPool)
         {
             _logger = logger;
+            _clientPool = clientPool;
         }
 
         public void Start(string ipAddress, int port)
         {
             ThrowIfStarted();
-            _cancellationTokenSource = new CancellationTokenSource();
-
             var address = IPAddress.Parse(ipAddress);
             var tcpListener = new TcpListener(address, port);
-            Task.Run(() => Listen(tcpListener), _cancellationTokenSource.Token);
+            
+            _cancellationTokenSource = new CancellationTokenSource();
+            
+            Task.Run(() => Listen(_cancellationTokenSource.Token, tcpListener), _cancellationTokenSource.Token);
         }
 
         public void Stop()
@@ -36,27 +40,28 @@ namespace Broker.Server
             _cancellationTokenSource = null;
         }
 
-        private async Task Listen(TcpListener tcpListener)
+        private async Task Listen(CancellationToken cancellationToken, TcpListener tcpListener)
         {
             tcpListener.Start();
+            _clientPool.Start();
             _logger.LogInformation("Listening on : {0}", tcpListener.LocalEndpoint);
             while (true)
             {
                 try
                 {
-                    _cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                    cancellationToken.ThrowIfCancellationRequested();
                 }
                 catch (OperationCanceledException)
                 {
                     tcpListener.Stop();
+                    _clientPool.Stop();
                     throw;
                 }
-                
+
                 _logger.LogDebug("Waiting for client to connect");
                 var tcpClient = await tcpListener.AcceptTcpClientAsync();
                 _logger.LogDebug("Client connected : {0}", tcpClient.Client.RemoteEndPoint);
-                var connectionHandler = new ConnectionHandler(tcpClient);
-                Task.Run(() => connectionHandler.Listen());
+                _clientPool.AddClient(tcpClient);
             }
         }
 

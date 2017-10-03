@@ -1,10 +1,8 @@
-﻿using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
+﻿using System.Linq;
 using Broker.Commands.Attributes;
+using Broker.Queues.Entities;
+using Broker.Queues.Services;
 using Broker.Server;
-using Broker.Topics.Entities;
-using Broker.Topics.Services;
 using Microsoft.Extensions.Logging;
 using Utils.Packets;
 
@@ -14,23 +12,22 @@ namespace Broker.Commands.Handlers
     public class PublishCommandHandler : AbstractRegexHandler
     {
         private readonly ILogger<PublishCommandHandler> _logger;
-        private readonly ITopicService _topicService;
+        private readonly IQueueService _queueService;
 
-        public PublishCommandHandler(ILogger<PublishCommandHandler> logger, ITopicService topicService) : base(
+        public PublishCommandHandler(ILogger<PublishCommandHandler> logger, IQueueService queueService) : base(
             @"^([\w\d\.]*){1}\s{1,}(.*)$")
         {
             _logger = logger;
-            _topicService = topicService;
+            _queueService = queueService;
         }
-
 
         public override Packet GetData(string[] data, ClientContext context)
         {
-            var topic = new Topic(data[0]);
+            var queue = new MbQueue(data[0]);
 
-            if (_topicService.GetTopics(topic.Identifier).Any())
+            if (_queueService.GetQueues(queue.Identifier).Any())
             {
-                _topicService.Publish(new TopicMessage(topic, data[1]));
+                _queueService.Publish(new MbMessage(queue.Identifier, data[1]));
 
                 return Packet.Ok();
             }

@@ -1,18 +1,17 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
 
-namespace Broker.Topics.Entities
+namespace Broker.Queues.Entities
 {
-    public class Topic
+    public class MbQueue
     {
         public string Identifier { get; }
 
-        public ConcurrentQueue<TopicMessage> Messages { get; }
+        public ConcurrentQueue<MbMessage> Messages { get; }
         
-        public Topic(string identifier)
+        public MbQueue(string identifier)
         {
             Identifier = identifier;
-            Messages = new ConcurrentQueue<TopicMessage>();
+            Messages = new ConcurrentQueue<MbMessage>();
         }
 
         public override string ToString()
@@ -22,9 +21,9 @@ namespace Broker.Topics.Entities
 
         public override bool Equals(object obj)
         {
-            if (obj is Topic topic)
+            if (obj is MbQueue queue)
             {
-                return Identifier.Equals(topic.Identifier);
+                return Identifier.Equals(queue.Identifier);
             }
 
             return false;

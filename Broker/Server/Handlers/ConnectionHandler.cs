@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Linq;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 using Broker.Commands;
 using Broker.Commands.Exceptions;
 using Broker.Commands.Services;
 using Broker.Core;
-using Broker.Topics.Services;
+using Broker.Queues.Entities;
+using Broker.Queues.Services;
 using Microsoft.Extensions.Logging;
-using Utils.Extensions;
 using Utils.Packets;
 
 namespace Broker.Server.Handlers
@@ -18,76 +16,52 @@ namespace Broker.Server.Handlers
     {
         private readonly TcpClient _tcpClient;
         private readonly ICommandService _commandService;
-        private readonly ITopicService _topicService;
         private readonly ILogger<ConnectionHandler> _logger;
         private readonly PacketStreamReader _packetStreamReader;
         private readonly PacketStreamWriter _packetStreamWriter;
         private readonly ClientContext _clientContext;
 
-        public ConnectionHandler(TcpClient tcpClient)
+        public ConnectionHandler(TcpClient tcpClient, ICommandService commandService, ILogger<ConnectionHandler> logger)
         {
             _tcpClient = tcpClient;
-            _topicService = Container.Resolve<ITopicService>();
-            _commandService = Container.Resolve<ICommandService>();
-            _logger = Container.Resolve<ILogger<ConnectionHandler>>();
+            _commandService = commandService;
+            _logger = logger;
             _packetStreamReader = new PacketStreamReader(_tcpClient.GetStream());
             _packetStreamWriter = new PacketStreamWriter(_tcpClient.GetStream());
             _clientContext = new ClientContext();
-            AppendMessageListener();
         }
 
-        public void Listen()
+        public void CheckStream()
         {
-            while (true)
+            if (_packetStreamReader.HasPacket())
             {
-                if (_packetStreamReader.HasPacket())
+                var command = _packetStreamReader.GetNextPacketCommand();
+                _logger.LogDebug("Client {0} sent command \"{1}\"", _tcpClient.Client.RemoteEndPoint, command);
+                Packet result;
+                try
                 {
-                    var command = _packetStreamReader.GetNextPacketCommand();
-                    _logger.LogDebug("Client {0} sent command \"{1}\"", _tcpClient.Client.RemoteEndPoint, command);
-                    Packet result;
-                    try
-                    {
-                        result = _commandService.Execute(command,_clientContext);
-                    }
-                    catch (CommandExecutionException exception)
-                    {
-                        _logger.LogError(exception, "Error on executing command");
-                        result = Packet.Error(exception.ProtocolError);
-                    }
-                    catch (Exception exception)
-                    {
-                        _logger.LogError(exception, "Error on executing command");
-                        result = Packet.Error(Errors.ServerError);
-                    }
-                    
-                    _packetStreamWriter.Write(result);
+                    result = _commandService.Execute(command, _clientContext);
                 }
-                CheckMessagesAndSend();
+                catch (CommandExecutionException exception)
+                {
+                    _logger.LogError(exception, "Error on executing command");
+                    result = Packet.Error(exception.ProtocolError);
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError(exception, "Error on executing command");
+                    result = Packet.Error(Errors.ServerError);
+                }
+
+                _packetStreamWriter.Write(result);
             }
         }
 
-        private void CheckMessagesAndSend()
+        public void SendMessage(MbMessage message)
         {
-            if (_clientContext.Messages.Any())
-            {
-                SendNextMessage();
-            }
+            _packetStreamWriter.Write(Packet.Message(message.QueueIdentifier,message.Content));
         }
 
-        private void SendNextMessage()
-        {
-            if (_clientContext.Messages.TryDequeue(out var topicMessage))
-            {
-                var packet = Packet.TopicMessage(topicMessage.Topic.Identifier,topicMessage.Content);
-            
-                _packetStreamWriter.Write(packet);
-            }
-        }
-        
-        private void AppendMessageListener()
-        {
-            _topicService.MessagePublisedEventHandler += _clientContext.OnNewPublishedTopicMessage;
-        }
-
+        public ClientContext Context => _clientContext;
     }
 }
