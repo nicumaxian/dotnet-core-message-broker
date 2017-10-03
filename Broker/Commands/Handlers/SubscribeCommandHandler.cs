@@ -8,7 +8,7 @@ namespace Broker.Commands.Handlers
     [Command("subscribe")]
     public class SubscribeCommandHandler : AbstractRegexHandler
     {
-        public SubscribeCommandHandler() : base(@"^([\w\d\.]*){1}$")
+        public SubscribeCommandHandler() : base(@"^([\w\d\.\?\*]*){1}$")
         {
         }
 
