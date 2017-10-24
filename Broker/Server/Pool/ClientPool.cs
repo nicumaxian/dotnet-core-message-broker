@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using Broker.Queues.Services;
 using Broker.Server.Exceptions;
 using Broker.Server.Handlers;
 using Microsoft.Extensions.Logging;
+using Utils.Extensions;
 
 namespace Broker.Server.Pool
 {
@@ -47,6 +49,7 @@ namespace Broker.Server.Pool
 
         public void Stop()
         {
+            _connectionHandlers.ForEach(handler => handler.SendDisconnectNotification());
             _cancellationTokenSource?.Cancel();
             _cancellationTokenSource = null;
             _logger.LogDebug("Stoping client pool");
@@ -58,17 +61,31 @@ namespace Broker.Server.Pool
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                foreach (var connectionHandler in _connectionHandlers)
-                {
-                    connectionHandler.CheckStream();
-                    CheckAndSendMessage(connectionHandler);
-                }
-                
+                _connectionHandlers.ForEach(connectionHandler => connectionHandler.CheckStream());
+                RemoveDisconnectedClients();
+                _connectionHandlers.ForEach(SendAvailableMessages);
+
                 Thread.Sleep(10);
             }
         }
 
-        private void CheckAndSendMessage(ConnectionHandler connectionHandler)
+
+        private void RemoveDisconnectedClients()
+        {
+            var disconnectedHandlers = _connectionHandlers.Where(h => h.Context.Disconnected);
+            var connectedHandlers = _connectionHandlers.Where(h => !h.Context.Disconnected)
+                .ToList();
+
+            var count = disconnectedHandlers.Count();
+            if (count > 0)
+            {
+                _logger.LogInformation("Disconnecting {0} clients after requesting", count);
+            }
+            _connectionHandlers.Clear();
+            connectedHandlers.ForEach(_connectionHandlers.Add);
+        }
+
+        private void SendAvailableMessages(ConnectionHandler connectionHandler)
         {
             var connectionHandlerContext = connectionHandler.Context;
             if (!string.IsNullOrEmpty(connectionHandlerContext.Subscription))
@@ -83,7 +100,8 @@ namespace Broker.Server.Pool
 
         private ConnectionHandler BuildConnectionHandler(TcpClient client)
         {
-            return new ConnectionHandler(client,Container.Resolve<ICommandService>(),Container.Resolve<ILogger<ConnectionHandler>>());
+            return new ConnectionHandler(client, Container.Resolve<ICommandService>(),
+                Container.Resolve<ILogger<ConnectionHandler>>());
         }
     }
 }

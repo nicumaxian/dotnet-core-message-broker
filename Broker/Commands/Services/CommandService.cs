@@ -2,6 +2,7 @@
 using System.Text.RegularExpressions;
 using Broker.Commands.Exceptions;
 using Broker.Server;
+using Broker.Server.Entity;
 using Microsoft.Extensions.Logging;
 using Utils.Packets;
 

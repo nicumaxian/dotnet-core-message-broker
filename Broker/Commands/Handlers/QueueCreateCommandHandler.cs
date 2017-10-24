@@ -2,6 +2,7 @@
 using Broker.Queues.Entities;
 using Broker.Queues.Services;
 using Broker.Server;
+using Broker.Server.Entity;
 using Utils.Packets;
 
 namespace Broker.Commands.Handlers

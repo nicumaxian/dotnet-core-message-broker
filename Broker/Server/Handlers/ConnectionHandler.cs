@@ -7,6 +7,7 @@ using Broker.Commands.Services;
 using Broker.Core;
 using Broker.Queues.Entities;
 using Broker.Queues.Services;
+using Broker.Server.Entity;
 using Microsoft.Extensions.Logging;
 using Utils.Packets;
 
@@ -60,6 +61,12 @@ namespace Broker.Server.Handlers
         public void SendMessage(MbMessage message)
         {
             _packetStreamWriter.Write(Packet.Message(message.QueueIdentifier,message.Content));
+        }
+
+        public void SendDisconnectNotification()
+        {
+            _packetStreamWriter.Write(Packet.Disconnect());
+            _logger.LogInformation("Sending disconnect notifacation to {0}",_tcpClient.Client.RemoteEndPoint);
         }
 
         public ClientContext Context => _clientContext;

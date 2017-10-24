@@ -4,6 +4,7 @@ using Broker.Commands.Attributes;
 using Broker.Queues.Entities;
 using Broker.Queues.Services;
 using Broker.Server;
+using Broker.Server.Entity;
 using Microsoft.Extensions.Logging;
 using Utils.Packets;
 

@@ -11,6 +11,11 @@ namespace Utils.Packets
             _string.AppendFormat("{0}", status);
         }
 
+        public static Packet Disconnect()
+        {
+            return new Packet(Status.Disconnect);
+        }
+        
         public static Packet Ok()
         {
             return new Packet(Status.Ok);
@@ -51,6 +56,7 @@ namespace Utils.Packets
             Ok = 0,
             Error = 1,
             TopicMessage = 2,
+            Disconnect = 3,
         }
     }
 }

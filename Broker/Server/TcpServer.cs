@@ -36,6 +36,7 @@ namespace Broker.Server
         public void Stop()
         {
             ThrowIfNotStarted();
+            _clientPool.Stop();
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource = null;
         }
@@ -54,7 +55,6 @@ namespace Broker.Server
                 catch (OperationCanceledException)
                 {
                     tcpListener.Stop();
-                    _clientPool.Stop();
                     throw;
                 }
 
