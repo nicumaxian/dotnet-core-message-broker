@@ -29,7 +29,7 @@ namespace Utils.Packets
 
         public static Packet Message(string queue, string message)
         {
-            return new Packet(Status.TopicMessage)
+            return new Packet(Status.QueueMessage)
                 .Append(queue)
                 .Append(message);
         }
@@ -55,7 +55,7 @@ namespace Utils.Packets
         {
             Ok = 0,
             Error = 1,
-            TopicMessage = 2,
+            QueueMessage = 2,
             Disconnect = 3,
         }
     }
