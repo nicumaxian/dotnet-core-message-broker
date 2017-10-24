@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Broker.Commands.Attributes;
 using Broker.Queues.Entities;
 using Broker.Queues.Services;
@@ -27,7 +28,7 @@ namespace Broker.Commands.Handlers
 
             if (_queueService.GetQueues(queue.Identifier).Any())
             {
-                _queueService.Publish(new MbMessage(queue.Identifier, data[1]));
+                _queueService.Publish(new MbMessage(queue.Identifier, data[1], DateTime.UtcNow));
 
                 return Packet.Ok();
             }

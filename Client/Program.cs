@@ -27,14 +27,14 @@ namespace Client
             Task.Run(() => Listen(client));
 
             var packetStreamWriter = new PacketStreamWriter(client.GetStream());
-            var text = string.Empty;
-            while (!text.Equals("exit"))
+            var command = string.Empty;
+            while (!command.Equals("exit") && client.Connected)
             {
-                var command = Console.ReadLine();
-                if (command.Length > 1)
+                if (!String.IsNullOrEmpty(command))
                 {
                     packetStreamWriter.Write(command);
                 }
+                command = Console.ReadLine();
             }
         }
 

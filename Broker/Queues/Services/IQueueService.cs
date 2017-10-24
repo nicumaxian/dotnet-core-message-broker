@@ -30,6 +30,10 @@ namespace Broker.Queues.Services
         /// <returns>Message</returns>
         MbMessage GetNextMessage(string subscription);
 
+        /// <summary>
+        /// Publish a message to a queue
+        /// </summary>
+        /// <param name="mbMessage">Message to be published</param>
         void Publish(MbMessage mbMessage);
     }
 }

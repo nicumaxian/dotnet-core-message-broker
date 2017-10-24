@@ -18,12 +18,13 @@ namespace Broker.Application
         {
             _logger.LogInformation("Application started");
             // todo : Make it configurable in external file
-            _server.Start("127.0.0.1",31013);
+            _server.Start("127.0.0.1",31012);
         }
 
         public void Stop()
         {
             _logger.LogInformation("Application stoped");
+            _server.Stop();
         }
     }
 }

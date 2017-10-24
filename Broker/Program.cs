@@ -30,8 +30,14 @@ namespace Broker
             brokerApp.Start();
             while (true)
             {
-                Thread.Sleep(1000);
+                var key = Console.ReadKey();
+
+                if (key.KeyChar == 'q')
+                {
+                    break;
+                }
             }
+            brokerApp.Stop();
         }
 
         private static IServiceProvider GetServiceProvider()
@@ -45,6 +51,7 @@ namespace Broker
             serviceCollection.AddSingleton<IServer, TcpServer>();
             serviceCollection.AddSingleton<ICommandService, CommandService>();
             serviceCollection.AddSingleton<IClientPool, ClientPool>();
+            serviceCollection.AddSingleton<IPersistanceService, PersistanceService>();
             serviceCollection.AddSingleton<ICommandCollection>(serviceProvider =>
             {
                 var commandCollection = new CommandCollection();
