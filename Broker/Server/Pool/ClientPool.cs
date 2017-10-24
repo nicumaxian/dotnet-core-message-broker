@@ -18,9 +18,10 @@ namespace Broker.Server.Pool
         private readonly IQueueService _queueService;
         private CancellationTokenSource _cancellationTokenSource;
 
-        public ClientPool(ILogger<ClientPool> logger)
+        public ClientPool(ILogger<ClientPool> logger, IQueueService queueService)
         {
             _logger = logger;
+            _queueService = queueService;
         }
 
         public void AddClient(TcpClient client)
