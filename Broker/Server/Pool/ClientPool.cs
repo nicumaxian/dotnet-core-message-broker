@@ -1,10 +1,12 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Broker.Commands.Services;
 using Broker.Core;
+using Broker.Queues.Entities;
 using Broker.Queues.Services;
 using Broker.Server.Exceptions;
 using Broker.Server.Handlers;
@@ -61,9 +63,11 @@ namespace Broker.Server.Pool
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                var instanceMessages = new HashSet<MbMessage>();
+                
                 _connectionHandlers.ForEach(connectionHandler => connectionHandler.CheckStream());
                 RemoveDisconnectedClients();
-                _connectionHandlers.ForEach(SendAvailableMessages);
+                _connectionHandlers.ForEach(handler => SendAvailableMessages(handler, instanceMessages));
 
                 Thread.Sleep(10);
             }
@@ -85,15 +89,25 @@ namespace Broker.Server.Pool
             connectedHandlers.ForEach(_connectionHandlers.Add);
         }
 
-        private void SendAvailableMessages(ConnectionHandler connectionHandler)
+        private void SendAvailableMessages(ConnectionHandler connectionHandler, HashSet<MbMessage> cycleMessagesSent)
         {
             var connectionHandlerContext = connectionHandler.Context;
             if (!string.IsNullOrEmpty(connectionHandlerContext.Subscription))
             {
-                var message = _queueService.GetNextMessage(connectionHandlerContext.Subscription);
-                if (message != null)
+                var dequeuedMessage = cycleMessagesSent.FirstOrDefault(message =>
+                    message.QueueIdentifier.MatchesGlob(connectionHandlerContext.Subscription));
+                if (dequeuedMessage != null)
                 {
-                    connectionHandler.SendMessage(message);
+                    connectionHandler.SendMessage(dequeuedMessage);
+                }
+                else
+                {
+                    var message = _queueService.GetNextMessage(connectionHandlerContext.Subscription);
+                    if (message != null)
+                    {
+                        connectionHandler.SendMessage(message);
+                        cycleMessagesSent.Add(message);
+                    }
                 }
             }
         }

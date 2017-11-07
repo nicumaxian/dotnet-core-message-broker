@@ -37,6 +37,7 @@ namespace Broker.Server
         {
             ThrowIfNotStarted();
             _clientPool.Stop();
+            Thread.Sleep(1000); // give a second to send all disconnect messages to clients before stopping tcp server. 
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource = null;
         }
